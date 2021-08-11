@@ -1,0 +1,85 @@
+const bcrypt = require("bcrypt");
+
+const mongo = require("../shared/mongo");
+const schema = require("../shared/schema");
+
+const service = {
+  async register(req, res) {
+    /*
+        1. Input validation - joi
+        2. Email exists or not - Mongo query to check the user
+        3. Encrypt the password - bcrypt
+        4. Inserting user details to DB - Mongo query to insert
+    */
+
+    try {
+      let data = req.body;
+
+      // Input Validation
+      const { error } = schema.register.validate(data);
+      if (error)
+        return res.status(400).send({ error: error.details[0].message });
+
+      // Email Validation
+      const user = await service.findByEmail(data.email);
+      if (user)
+        return res.status(400).send({ error: "User already registered" });
+
+      // Encrypt Password
+      const salt = await bcrypt.genSalt(10);
+      data.password = await bcrypt.hash(data.password, salt);
+
+      //   Insert User
+      await mongo.db.collection("users").insertOne(data);
+
+      //   Send success response
+      res.send({ message: "Registered successfully !" });
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({ error: "Internal server error" });
+    }
+  },
+
+  async login(req, res) {
+    /*
+        1. Input validation - joi
+        2. User validation - Mongo query to check the user
+        3. Compare the password - bcrypt
+    */
+
+    try {
+      let data = req.body;
+
+      // Input Validation
+      const { error } = schema.login.validate(data);
+      if (error)
+        return res.status(400).send({ error: error.details[0].message });
+
+      // User Validation
+      const user = await service.findByEmail(data.email);
+      if (!user)
+        return res
+          .status(403)
+          .send({ error: "Username or password is incorrect" });
+
+      // Compare Password
+      const isValid = await bcrypt.compare(data.password, user.password);
+      if (!isValid)
+        return res
+          .status(403)
+          .send({ error: "Username or password is incorrect" });
+
+      //   Send success response
+      res.send({ message: "Successfully logged in !" });
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({ error: "Internal server error" });
+    }
+  },
+
+  findByEmail(email) {
+    return mongo.db.collection("users").findOne({ email });
+  },
+};
+
+module.exports = service;
