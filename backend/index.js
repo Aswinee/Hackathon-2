@@ -9,6 +9,7 @@ const cors = require("cors");
 // Importing all the routes
 const authRoute = require("./routes/auth.routes");
 const tagsRoute = require("./routes/tag.routes");
+const jobsRoute = require("./routes/job.routes");
 
 const mongo = require("./shared/mongo");
 
@@ -33,6 +34,7 @@ async function loadApp() {
     // Routes
     app.use("/auth", authRoute);
     app.use("/tags", tagsRoute);
+    app.use("/jobs", jobsRoute);
 
     // Starting Server
     app.listen(process.env.PORT, () =>
