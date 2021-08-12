@@ -10,6 +10,7 @@ const cors = require("cors");
 const authRoute = require("./routes/auth.routes");
 const tagsRoute = require("./routes/tag.routes");
 const jobsRoute = require("./routes/job.routes");
+const questionsRoute = require("./routes/question.routes");
 
 const mongo = require("./shared/mongo");
 
@@ -35,6 +36,7 @@ async function loadApp() {
     app.use("/auth", authRoute);
     app.use("/tags", tagsRoute);
     app.use("/jobs", jobsRoute);
+    app.use("/questions", questionsRoute);
 
     // Starting Server
     app.listen(process.env.PORT, () =>
